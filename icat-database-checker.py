@@ -192,8 +192,8 @@ def check_ref_integrity(connection, table, report_columns, conditions):
 
 def check_timestamp_order(connection, table, report_columns,
                           first_ts='create_ts', second_ts='modify_ts'):
-    query = "SELECT " + ",".join(report_columns) + " FROM " + \
-        table + " WHERE " + first_ts + " > " + second_ts
+    query = "SELECT {} FROM {} WHERE CAST ( {} AS INT ) > CAST ( {} AS INT )".format(
+        ",".join(report_columns), table, first_ts, second_ts)
     cursor = connection.cursor()
     cursor.execute(query)
     return cursor.fetchall()
