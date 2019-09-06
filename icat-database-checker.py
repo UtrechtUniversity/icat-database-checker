@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import json
 import psycopg2
 import sys
+import time
 
 ref_integrity_checks = {
     'collection and data object have same id': {
@@ -175,6 +176,15 @@ def check_timestamp_order(connection, table, report_columns,
     cursor.execute(query)
     return cursor.fetchall()
 
+
+def check_timestamp_future(connection, table, report_columns, max_ts,
+                           first_ts='create_ts', second_ts='modify_ts'):
+    query = "SELECT {} FROM {} WHERE CAST( {} AS INT) > {} OR CAST( {} AS INT) > {}".format(
+        ",".join(report_columns), table, first_ts, max_ts, second_ts, max_ts)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    return cursor.fetchall()
+
 # Main
 
 
@@ -199,15 +209,28 @@ for check_name, check_params in ref_integrity_checks.items():
             column_num = column_num + 1
         issue_found = True
 
-for check_name, check_params in ts_order_checks.items():
+max_ts = int(time.time()) + 1
+for check_name, check_params in ts_checks.items():
     if args.v:
         print("Check: timestamp order - " + check_name)
-    result = check_timestamp_order(
+    result_order = check_timestamp_order(
         connection,
         check_params['table'],
         check_params['report_columns'])
-    for row in result:
+    for row in result_order:
         print("Unexpected timestamp order found for " + check_name)
+        column_num = 0
+        for report_column in check_params['report_columns']:
+            print("  " + str(report_column) + " : " + str(row[column_num]))
+            column_num = column_num + 1
+        issue_found = True
+    result_future = check_timestamp_future(
+        connection,
+        check_params['table'],
+        check_params['report_columns'],
+        max_ts)
+    for row in result_future:
+        print("Timestamp in future for " + check_name)
         column_num = 0
         for report_column in check_params['report_columns']:
             print("  " + str(report_column) + " : " + str(row[column_num]))
