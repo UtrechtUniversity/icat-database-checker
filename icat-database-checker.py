@@ -6,6 +6,28 @@ import psycopg2
 import sys
 import time
 
+name_checks = {
+    'collection': {
+        'table': 'r_coll_main',
+        'report_columns': ['coll_id', 'coll_name'],
+        'name': 'coll_name'},
+    'data object': {
+        'table': 'r_data_main',
+        'report_columns': ['data_id', 'data_name', 'coll_id'],
+        'name': 'data_name'},
+    'resource': {
+        'table': 'r_resc_main',
+        'report_columns': ['resc_id', 'resc_name'],
+        'name': 'resc_name'},
+    'user': {
+        'table': 'r_user_main',
+        'report_columns': ['user_id', 'user_name'],
+        'name': 'user_name'},
+    'zone': {
+        'table': 'r_zone_main',
+        'report_columns': ['zone_id', 'zone_name'],
+        'name': 'zone_name'}}
+
 ref_integrity_checks = {
     'collection and data object have same id': {
         'table': 'r_coll_main',
@@ -185,6 +207,35 @@ def check_timestamp_future(connection, table, report_columns, max_ts,
     cursor.execute(query)
     return cursor.fetchall()
 
+
+def check_name_empty(connection, table, name, report_columns):
+    query = "SELECT {} FROM {} WHERE {} = ''".format(
+        ",".join(report_columns), table, name)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+def check_name_buggy_characters(connection, table, name, report_columns):
+    query = r"SELECT {} FROM {} WHERE {} ~ '[\`\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]'".format(
+        ",".join(report_columns), table, name)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+def get_collection_name(connection, search_coll_id):
+    query = "SELECT coll_name FROM r_coll_main WHERE coll_id = " + search_coll_id
+    cursor = connection.cursor()
+    cursor.execute(query)
+    names = cursor.fetchall()
+    if len(names) == 1:
+        return names[0][0]
+    elif len(names) > 1:
+        raise ValueError(
+            "Unexpected duplicate result when retrieving collection name")
+    else:
+        return None
 # Main
 
 
@@ -212,7 +263,8 @@ for check_name, check_params in ref_integrity_checks.items():
 max_ts = int(time.time()) + 1
 for check_name, check_params in ts_checks.items():
     if args.v:
-        print("Check: timestamp order - " + check_name)
+        print("Check: timestamp - " + check_name)
+
     result_order = check_timestamp_order(
         connection,
         check_params['table'],
@@ -224,6 +276,7 @@ for check_name, check_params in ts_checks.items():
             print("  " + str(report_column) + " : " + str(row[column_num]))
             column_num = column_num + 1
         issue_found = True
+
     result_future = check_timestamp_future(
         connection,
         check_params['table'],
@@ -234,6 +287,44 @@ for check_name, check_params in ts_checks.items():
         column_num = 0
         for report_column in check_params['report_columns']:
             print("  " + str(report_column) + " : " + str(row[column_num]))
+            column_num = column_num + 1
+        issue_found = True
+
+for check_name, check_params in name_checks.items():
+    if args.v:
+        print("Check: names - " + check_name)
+
+    result_empty = check_name_empty(
+        connection,
+        check_params['table'],
+        check_params['name'],
+        check_params['report_columns'])
+    for row in result_empty:
+        print("Empty name for " + check_name)
+        column_num = 0
+        for report_column in check_params['report_columns']:
+            print("  " + str(report_column) + " : " + str(row[column_num]))
+            column_num = column_num + 1
+        issue_found = True
+
+    result_buggy_characters = check_name_buggy_characters(
+        connection,
+        check_params['table'],
+        check_params['name'],
+        check_params['report_columns'])
+    for row in result_buggy_characters:
+        print(
+            "Name with characters that iRODS processes incorrectly - " +
+            check_name)
+        column_num = 0
+        for report_column in check_params['report_columns']:
+            if str(report_column) == 'coll_id':
+                coll_name = get_collection_name(
+                    connection, str(row[column_num]))
+                if coll_name is not None:
+                    print("  Collection name : " + coll_name)
+            else:
+                print("  " + str(report_column) + " : " + str(row[column_num]))
             column_num = column_num + 1
         issue_found = True
 
