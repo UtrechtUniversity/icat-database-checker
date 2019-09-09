@@ -183,8 +183,10 @@ def get_connection_database(config):
 
 
 def check_ref_integrity(connection, table, report_columns, conditions):
-    query = "SELECT " + ",".join(report_columns) + " FROM " + \
-        table + " WHERE " + " AND ".join(conditions)
+    query = "SELECT {} FROM {} WHERE {}".format(
+            ",".join(report_columns),
+            table,
+            " AND ".join(conditions))
     cursor = connection.cursor()
     cursor.execute(query)
     return cursor.fetchall()
@@ -303,7 +305,7 @@ for check_name, check_params in name_checks.items():
         print("Empty name for " + check_name)
         column_num = 0
         for report_column in check_params['report_columns']:
-            print("  " + str(report_column) + " : " + str(row[column_num]))
+            print("  {} : {}".format(str(report_column), str(row[column_num])))
             column_num = column_num + 1
         issue_found = True
 
@@ -324,7 +326,7 @@ for check_name, check_params in name_checks.items():
                 if coll_name is not None:
                     print("  Collection name : " + coll_name)
             else:
-                print("  " + str(report_column) + " : " + str(row[column_num]))
+                print("  {} : {}".format(str(report_column), str(row[column_num])))
             column_num = column_num + 1
         issue_found = True
 
