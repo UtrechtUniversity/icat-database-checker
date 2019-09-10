@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from enum import Enum
 import json
 import psycopg2
 import sys
@@ -147,6 +148,16 @@ ts_checks = {
 }
 
 
+class TestSubset(Enum):
+    ref_integrity = 'ref_integrity'
+    timestamps = 'timestamps'
+    names = 'names'
+    all = 'all'
+
+    def __str__(self):
+        return self.name
+
+
 def get_arguments():
     desc = 'Performs a number of sanity checks on the iRODS ICAT database'
     parser = ArgumentParser(description=desc)
@@ -159,6 +170,12 @@ def get_arguments():
         action='store_const',
         const=True,
         help='Verbose mode')
+    parser.add_argument(
+        '--run-test',
+        help='Test to run',
+        default='all',
+        type=TestSubset,
+        choices=list(TestSubset))
     args = parser.parse_args()
     return args
 
@@ -238,96 +255,140 @@ def get_collection_name(connection, search_coll_id):
             "Unexpected duplicate result when retrieving collection name")
     else:
         return None
-# Main
 
 
-args = get_arguments()
-config = read_database_config(args.config_file)
-connection = get_connection_database(config)
-issue_found = False
+def run_ref_integrity_checks(args, connection):
+    issue_found = False
 
-for check_name, check_params in ref_integrity_checks.items():
-    if args.v:
-        print("Check: referential integrity - " + check_name)
-    result = check_ref_integrity(
-        connection,
-        check_params['table'],
-        check_params['report_columns'],
-        check_params['conditions'])
-    for row in result:
-        print("Potential referential integrity issue found: " + check_name)
-        column_num = 0
-        for report_column in check_params['report_columns']:
-            print("  " + str(report_column) + " : " + str(row[column_num]))
-            column_num = column_num + 1
+    for check_name, check_params in ref_integrity_checks.items():
+        if args.v:
+            print("Check: referential integrity - " + check_name)
+        result = check_ref_integrity(
+            connection,
+            check_params['table'],
+            check_params['report_columns'],
+            check_params['conditions'])
+        for row in result:
+            print("Potential referential integrity issue found: " + check_name)
+            column_num = 0
+            for report_column in check_params['report_columns']:
+                print("  " + str(report_column) + " : " + str(row[column_num]))
+                column_num = column_num + 1
+            issue_found = True
+
+    return issue_found
+
+
+def run_timestamp_checks(args, connection):
+    issue_found = False
+    max_ts = int(time.time()) + 1
+    for check_name, check_params in ts_checks.items():
+        if args.v:
+            print("Check: timestamp - " + check_name)
+
+        result_order = check_timestamp_order(
+            connection,
+            check_params['table'],
+            check_params['report_columns'])
+        for row in result_order:
+            print("Unexpected timestamp order found for " + check_name)
+            column_num = 0
+            for report_column in check_params['report_columns']:
+                print("  " + str(report_column) + " : " + str(row[column_num]))
+                column_num = column_num + 1
+            issue_found = True
+
+        result_future = check_timestamp_future(
+            connection,
+            check_params['table'],
+            check_params['report_columns'],
+            max_ts)
+        for row in result_future:
+            print("Timestamp in future for " + check_name)
+            column_num = 0
+            for report_column in check_params['report_columns']:
+                print("  " + str(report_column) + " : " + str(row[column_num]))
+                column_num = column_num + 1
+            issue_found = True
+
+    return issue_found
+
+
+def run_name_checks(args, connection):
+    issue_found = False
+    for check_name, check_params in name_checks.items():
+        if args.v:
+            print("Check: names - " + check_name)
+
+        result_empty = check_name_empty(
+            connection,
+            check_params['table'],
+            check_params['name'],
+            check_params['report_columns'])
+        for row in result_empty:
+            print("Empty name for " + check_name)
+            column_num = 0
+            for report_column in check_params['report_columns']:
+                print(
+                    "  {} : {}".format(
+                        str(report_column), str(
+                            row[column_num])))
+                column_num = column_num + 1
+            issue_found = True
+
+        result_buggy_characters = check_name_buggy_characters(
+            connection,
+            check_params['table'],
+            check_params['name'],
+            check_params['report_columns'])
+        for row in result_buggy_characters:
+            print(
+                "Name with characters that iRODS processes incorrectly - " +
+                check_name)
+            column_num = 0
+            for report_column in check_params['report_columns']:
+                if str(report_column) == 'coll_id':
+                    coll_name = get_collection_name(
+                        connection, str(row[column_num]))
+                    if coll_name is not None:
+                        print("  Collection name : " + coll_name)
+                else:
+                    print(
+                        "  {} : {}".format(
+                            str(report_column), str(
+                                row[column_num])))
+                column_num = column_num + 1
+
         issue_found = True
 
-max_ts = int(time.time()) + 1
-for check_name, check_params in ts_checks.items():
-    if args.v:
-        print("Check: timestamp - " + check_name)
+    return issue_found
 
-    result_order = check_timestamp_order(
-        connection,
-        check_params['table'],
-        check_params['report_columns'])
-    for row in result_order:
-        print("Unexpected timestamp order found for " + check_name)
-        column_num = 0
-        for report_column in check_params['report_columns']:
-            print("  " + str(report_column) + " : " + str(row[column_num]))
-            column_num = column_num + 1
-        issue_found = True
 
-    result_future = check_timestamp_future(
-        connection,
-        check_params['table'],
-        check_params['report_columns'],
-        max_ts)
-    for row in result_future:
-        print("Timestamp in future for " + check_name)
-        column_num = 0
-        for report_column in check_params['report_columns']:
-            print("  " + str(report_column) + " : " + str(row[column_num]))
-            column_num = column_num + 1
-        issue_found = True
+def main():
+    args = get_arguments()
+    config = read_database_config(args.config_file)
+    connection = get_connection_database(config)
 
-for check_name, check_params in name_checks.items():
-    if args.v:
-        print("Check: names - " + check_name)
+    if args.run_test.value == 'all' or args.run_test.value == 'ref_integrity':
+        issue_ref_integrity_checks = run_ref_integrity_checks(args, connection)
+    else:
+        issue_ref_integrity_checks = False
 
-    result_empty = check_name_empty(
-        connection,
-        check_params['table'],
-        check_params['name'],
-        check_params['report_columns'])
-    for row in result_empty:
-        print("Empty name for " + check_name)
-        column_num = 0
-        for report_column in check_params['report_columns']:
-            print("  {} : {}".format(str(report_column), str(row[column_num])))
-            column_num = column_num + 1
-        issue_found = True
+    if args.run_test.value == 'all' or args.run_test.value == 'timestamps':
+        issue_timestamps = run_timestamp_checks(args, connection)
+    else:
+        issue_timestamps = False
 
-    result_buggy_characters = check_name_buggy_characters(
-        connection,
-        check_params['table'],
-        check_params['name'],
-        check_params['report_columns'])
-    for row in result_buggy_characters:
-        print(
-            "Name with characters that iRODS processes incorrectly - " +
-            check_name)
-        column_num = 0
-        for report_column in check_params['report_columns']:
-            if str(report_column) == 'coll_id':
-                coll_name = get_collection_name(
-                    connection, str(row[column_num]))
-                if coll_name is not None:
-                    print("  Collection name : " + coll_name)
-            else:
-                print("  {} : {}".format(str(report_column), str(row[column_num])))
-            column_num = column_num + 1
-        issue_found = True
+    if args.run_test.value == 'all' or args.run_test.value == 'names':
+        issue_names = run_name_checks(args, connection)
+    else:
+        issue_names = False
 
-sys.exit(2 if issue_found else 0)
+    if issue_ref_integrity_checks or issue_timestamps or issue_names:
+        sys.exit(2)
+    else:
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
