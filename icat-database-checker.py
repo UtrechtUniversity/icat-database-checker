@@ -153,6 +153,7 @@ class TestSubset(Enum):
     ref_integrity = 'ref_integrity'
     timestamps = 'timestamps'
     names = 'names'
+    hardlinks = 'hardlinks'
     path_consistency = 'path_consistency'
     all = 'all'
 
@@ -199,6 +200,35 @@ def get_connection_database(config):
         print("Error while connecting to database: ", error)
         sys.exit(1)
     return connection
+
+
+def get_collection_name(connection, search_coll_id):
+    query = "SELECT coll_name FROM r_coll_main WHERE coll_id = {}".format(
+        str(search_coll_id))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    names = cursor.fetchall()
+    if len(names) == 1:
+        return names[0][0]
+    elif len(names) > 1:
+        raise ValueError(
+            "Unexpected duplicate result when retrieving collection name.")
+    else:
+        return None
+
+
+def get_dataobject_name(connection, search_data_id):
+    query = "SELECT data_name, coll_id FROM r_data_main WHERE data_id = {}".format(
+        str(search_data_id))
+    cursor = connection.cursor()
+    cursor.execute(query)
+    names = cursor.fetchall()
+    if len(names) >= 1:
+        # It is possible that we get multiple matches for the dataobject id, because the table
+        # has separate entries for replicas
+        return get_collection_name(connection, names[0][1]) + "/" + names[0][0]
+    else:
+        return None
 
 
 def check_ref_integrity(connection, table, report_columns, conditions):
@@ -300,18 +330,36 @@ def run_check_dataobjects_inconsistent_path(connection):
     return issue_found
 
 
-def get_collection_name(connection, search_coll_id):
-    query = "SELECT coll_name FROM r_coll_main WHERE coll_id = " + search_coll_id
-    cursor = connection.cursor()
-    cursor.execute(query)
-    names = cursor.fetchall()
-    if len(names) == 1:
-        return names[0][0]
-    elif len(names) > 1:
-        raise ValueError(
-            "Unexpected duplicate result when retrieving collection name")
-    else:
-        return None
+def run_check_hardlinks(connection):
+    issue_found = False
+    resource_name_lookup = get_resource_name_dict(connection)
+    for resc_id, resc_path in get_resource_vault_path_dict(connection).items():
+        query = "SELECT data_id, data_path FROM r_data_main WHERE resc_id = {}".format(
+            resc_id)
+        lookup_path = {}
+        cursor = connection.cursor()
+        cursor.execute(query)
+        for row in cursor.fetchall():
+            if row[1] in lookup_path:
+                issue_found = True
+                this_object = get_dataobject_name(connection, row[0])
+                other_object = get_dataobject_name(
+                    connection, lookup_path[row[1]])
+                if this_object == other_object:
+                    print(
+                        "Duplicate dataobject entry found for data object {}\n  Resource: {}\n   Path: {}".format(
+                            this_object, resource_name_lookup[resc_id], row[1]))
+                else:
+                    print(
+                        "Hard link found for path {} on resource {}:\n  Data object 1: {}\n  Data object 2: {}\n".format(
+                            row[1],
+                            resource_name_lookup[resc_id],
+                            this_object,
+                            other_object))
+            else:
+                lookup_path[row[1]] = row[0]
+
+    return issue_found
 
 
 def run_ref_integrity_checks(args, connection):
@@ -432,6 +480,12 @@ def main():
     else:
         issue_path_consistency = False
 
+    if args.run_test.value == 'all' or args.run_test.value == 'hardlinks':
+        issue_hardlinks = run_check_hardlinks(
+            connection)
+    else:
+        issue_hardlinks = False
+
     if args.run_test.value == 'all' or args.run_test.value == 'ref_integrity':
         issue_ref_integrity_checks = run_ref_integrity_checks(args, connection)
     else:
@@ -447,7 +501,7 @@ def main():
     else:
         issue_names = False
 
-    if issue_path_consistency or issue_ref_integrity_checks or issue_timestamps or issue_names:
+    if issue_path_consistency or issue_ref_integrity_checks or issue_timestamps or issue_names or issue_hardlinks:
         sys.exit(2)
     else:
         sys.exit(0)
