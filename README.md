@@ -7,6 +7,7 @@ This is an experimental script to check the iRODS ICAT database for unexpected i
 - Empty object names
 - Object names that contain characters which are not handled correctly on XML-based clients,
   such as the python-irods-client (See https://github.com/irods/irods/issues/4132 for details).
+- Files in vaults that have a directory name which is inconsistent with the collection name
 
 The present version of the script is suitable for Postgresql databases. It is compatible with iRODS 4.2.x.
 

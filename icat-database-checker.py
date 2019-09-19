@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from enum import Enum
 import json
+import pathlib
 import psycopg2
 import sys
 import time
@@ -152,6 +153,7 @@ class TestSubset(Enum):
     ref_integrity = 'ref_integrity'
     timestamps = 'timestamps'
     names = 'names'
+    path_consistency = 'path_consistency'
     all = 'all'
 
     def __str__(self):
@@ -241,6 +243,61 @@ def check_name_buggy_characters(connection, table, name, report_columns):
     cursor = connection.cursor()
     cursor.execute(query)
     return cursor.fetchall()
+
+
+def get_resource_vault_path_dict(connection):
+    ''' Returns a dictionary with resource ids (keys) and vault paths (values) of all unixfilesystem resources. '''
+    query = "SELECT resc_id, resc_def_path from r_resc_main where resc_type_name = 'unixfilesystem'"
+    result = {}
+    cursor = connection.cursor()
+    cursor.execute(query)
+    for row in cursor.fetchall():
+        result[row[0]] = row[1]
+    return result
+
+
+def get_resource_name_dict(connection):
+    '''Returns a dictionary with resource ids (keys) and resource names. '''
+    query = "SELECT resc_id, resc_name from r_resc_main"
+    result = {}
+    cursor = connection.cursor()
+    cursor.execute(query)
+    for row in cursor.fetchall():
+        result[row[0]] = row[1]
+    return result
+
+
+def get_coll_path_dict(connection):
+    '''Returns a dictionary with collection ids (keys) and collection names (values) of all collections. '''
+    query = "SELECT coll_id, coll_name FROM r_coll_main"
+    result = {}
+    cursor = connection.cursor()
+    cursor.execute(query)
+    for row in cursor.fetchall():
+        result[row[0]] = row[1]
+    return result
+
+
+def run_check_dataobjects_inconsistent_path(connection):
+    issue_found = False
+    resource_path_lookup = get_resource_vault_path_dict(connection)
+    resource_name_lookup = get_resource_name_dict(connection)
+    coll_path_lookup = get_coll_path_dict(connection)
+    query = "SELECT data_id, coll_id, resc_id, data_path FROM r_data_main"
+    cursor = connection.cursor()
+    cursor.execute(query)
+    for row in cursor.fetchall():
+        vaultpath = pathlib.Path(resource_path_lookup[row[2]])
+        dirname = pathlib.Path(*pathlib.Path(row[3]).parts[:-1])
+        dirname_without_vault = dirname.relative_to(vaultpath)
+        collname_parts = pathlib.Path(coll_path_lookup[row[1]]).parts
+        collname_parts_without_zone = list(collname_parts[2:])
+        collname_without_zone = pathlib.Path(*collname_parts_without_zone)
+        if collname_without_zone != dirname_without_vault:
+            print("Inconsistent directory name in resource {} for {} :\n  collection = {}\n  directory name in vault = {}".format(
+                resource_name_lookup[row[2]], row[3], collname_without_zone, dirname_without_vault))
+            issue_found = True
+    return issue_found
 
 
 def get_collection_name(connection, search_coll_id):
@@ -369,6 +426,12 @@ def main():
     config = read_database_config(args.config_file)
     connection = get_connection_database(config)
 
+    if args.run_test.value == 'all' or args.run_test.value == 'path_consistency':
+        issue_path_consistency = run_check_dataobjects_inconsistent_path(
+            connection)
+    else:
+        issue_path_consistency = False
+
     if args.run_test.value == 'all' or args.run_test.value == 'ref_integrity':
         issue_ref_integrity_checks = run_ref_integrity_checks(args, connection)
     else:
@@ -384,7 +447,7 @@ def main():
     else:
         issue_names = False
 
-    if issue_ref_integrity_checks or issue_timestamps or issue_names:
+    if issue_path_consistency or issue_ref_integrity_checks or issue_timestamps or issue_names:
         sys.exit(2)
     else:
         sys.exit(0)
