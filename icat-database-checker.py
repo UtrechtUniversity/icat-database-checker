@@ -176,7 +176,7 @@ def get_arguments():
         help='Verbose mode')
     parser.add_argument(
         '--run-test',
-        help='Test to run',
+        help='Test to run (default: all)',
         default='all',
         type=TestSubset,
         choices=list(TestSubset))

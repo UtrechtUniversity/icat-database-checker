@@ -31,7 +31,26 @@ Now create a virtual environment for the script and install it:
 
 # Usage
 
-Standard usage: _./icat-database-checker_
+```
+usage: icat-database-checker.py [-h] [--config-file CONFIG_FILE] [-v]
+                                [--run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}]
+                                [--min-replicas MIN_REPLICAS]
+
+Performs a number of sanity checks on the iRODS ICAT database
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --config-file CONFIG_FILE
+                        Location of the irods server_config file (default:
+                        etc/irods/server_config.json )
+  -v                    Verbose mode
+  --run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}
+                        Test to run (default: all)
+  --min-replicas MIN_REPLICAS
+                        Minimum number of replicas that a dataobject must have
+                        (default: 1).
+
+```
 
 By default, the script retrieves the database connection parameters from the iRODS server configuration file.
 It is possible to override the server config file location using the --config-file parameter, like so:
