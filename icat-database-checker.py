@@ -154,6 +154,7 @@ class TestSubset(Enum):
     timestamps = 'timestamps'
     names = 'names'
     hardlinks = 'hardlinks'
+    minreplicas = 'minreplicas'
     path_consistency = 'path_consistency'
     all = 'all'
 
@@ -179,6 +180,11 @@ def get_arguments():
         default='all',
         type=TestSubset,
         choices=list(TestSubset))
+    parser.add_argument(
+        '--min-replicas',
+        help='Minimum number of replicas that a dataobject must have (default: 1).',
+        default=1,
+        type=int)
     args = parser.parse_args()
     return args
 
@@ -362,6 +368,30 @@ def run_check_hardlinks(connection):
     return issue_found
 
 
+def run_check_minreplicas(args, connection):
+    issue_found = False
+    resource_name_lookup = get_resource_name_dict(connection)
+    query = "SELECT data_id, resc_id FROM r_data_main"
+    cursor = connection.cursor()
+    cursor.execute(query)
+    data_resc_lookup = {}
+    for row in cursor.fetchall():
+        if row[0] in data_resc_lookup:
+            if row[1] not in data_resc_lookup[row[0]]:
+                data_resc_lookup[row[0]][row[1]] = ""
+        else:
+            data_resc_lookup[row[0]] = {row[1]: ""}
+    for data_id, resc_dict in data_resc_lookup.items():
+        number_replicas = len(resc_dict.keys())
+        if number_replicas < args.min_replicas:
+            issue_found = True
+            object_name = get_dataobject_name(connection, data_id)
+            print("Number of replicas for data object {} is {} (less than {})".format(
+                object_name, number_replicas, args.min_replicas))
+
+    return issue_found
+
+
 def run_ref_integrity_checks(args, connection):
     issue_found = False
 
@@ -486,6 +516,12 @@ def main():
     else:
         issue_hardlinks = False
 
+    if args.run_test.value == 'all' or args.run_test.value == 'minreplicas':
+        issue_minreplicas = run_check_minreplicas(
+            args, connection)
+    else:
+        issue_minreplicas = False
+
     if args.run_test.value == 'all' or args.run_test.value == 'ref_integrity':
         issue_ref_integrity_checks = run_ref_integrity_checks(args, connection)
     else:
@@ -501,7 +537,7 @@ def main():
     else:
         issue_names = False
 
-    if issue_path_consistency or issue_ref_integrity_checks or issue_timestamps or issue_names or issue_hardlinks:
+    if issue_path_consistency or issue_ref_integrity_checks or issue_timestamps or issue_names or issue_hardlinks or issue_minreplicas:
         sys.exit(2)
     else:
         sys.exit(0)
