@@ -1,6 +1,7 @@
 import json
 import psycopg2
 
+
 def read_database_config(config_filename):
     with open(config_filename) as configfile:
         data = json.load(configfile)
@@ -34,6 +35,7 @@ def get_collection_name(connection, search_coll_id):
     else:
         return None
 
+
 def get_dataobject_name(connection, search_data_id):
     query = "SELECT data_name, coll_id FROM r_data_main WHERE data_id = {}".format(
         str(search_data_id))
@@ -46,6 +48,7 @@ def get_dataobject_name(connection, search_data_id):
         return get_collection_name(connection, names[0][1]) + "/" + names[0][0]
     else:
         return None
+
 
 def get_resource_vault_path_dict(connection):
     ''' Returns a dictionary with resource ids (keys) and vault paths (values) of all unixfilesystem resources. '''

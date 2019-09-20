@@ -5,6 +5,9 @@ import psycopg2
 
 
 class PathInconsistencyDetector(Detector):
+    def get_name(self):
+        return "path_consistency"
+
     def run(self):
         issue_found = False
         resource_path_lookup = utils.get_resource_vault_path_dict(
@@ -24,8 +27,11 @@ class PathInconsistencyDetector(Detector):
             collname_parts_without_zone = list(collname_parts[2:])
             collname_without_zone = pathlib.Path(*collname_parts_without_zone)
             if collname_without_zone != dirname_without_vault:
-                print("Inconsistent directory name in resource {} for {} :\n  collection = {}\n  directory name in vault = {}".format(
-                    resource_name_lookup[row[2]], row[3], collname_without_zone, dirname_without_vault))
+                self.output_item({
+                    'resource_name': resource_name_lookup[row[2]],
+                    'phy_path': row[3],
+                    'coll_name': collname_without_zone,
+                    'dir_name': dirname_without_vault})
                 issue_found = True
 
         return issue_found

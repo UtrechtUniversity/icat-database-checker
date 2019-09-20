@@ -4,6 +4,9 @@ import time
 
 class TimestampIssueDetector(Detector):
 
+    def get_name(self):
+        return "timestamps"
+
     def _get_ts_check_data(self):
         data = {
             'data object':
@@ -51,17 +54,18 @@ class TimestampIssueDetector(Detector):
         max_ts = int(time.time()) + 1
         for check_name, check_params in self._get_ts_check_data():
            if self.args.v:
-               print("Check: timestamp - " + check_name)
+               self.output_message("Check: timestamp - " + check_name)
 
            result_order = self._check_timestamp_order(
                 check_params['table'],
                 check_params['report_columns'])
            for row in result_order:
-                print("Unexpected timestamp order found for " + check_name)
+                output = { 'type' : 'order', 'check_name' : check_name, 'report_columns' : {} }
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    print("  " + str(report_column) + " : " + str(row[column_num]))
+                    output['report_columns'][str(report_column)] = str(row[column_num])
                     column_num = column_num + 1
+                self.output_item(output)
                 issue_found = True
 
            result_future = self._check_timestamp_future(
@@ -69,11 +73,12 @@ class TimestampIssueDetector(Detector):
                 check_params['report_columns'],
                 max_ts)
            for row in result_future:
-                print("Timestamp in future for " + check_name)
+                output = { 'type' : 'future', 'check_name' : check_name, 'report_columns' : {} }
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    print("  " + str(report_column) + " : " + str(row[column_num]))
+                    output['report_columns'][str(report_column)] = str(row[column_num])
                     column_num = column_num + 1
+                self.output_item(output)
                 issue_found = True
 
         return issue_found

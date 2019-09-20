@@ -4,6 +4,9 @@ import psycopg2
 
 
 class RefIntegrityIssueDetector(Detector):
+    def get_name(self):
+        return "ref_integrity"
+
     def _get_ref_integrity_data(self):
         data = {
             'collection and data object have same id': {
@@ -114,7 +117,7 @@ class RefIntegrityIssueDetector(Detector):
         issue_found = False
         for check_name, check_params in self._get_ref_integrity_data():
             if self.args.v:
-                print("Check: referential integrity - " + check_name)
+                self.output_message("Check: referential integrity - " + check_name)
 
             result = self._check_ref_integrity(
                 check_params['table'],
@@ -122,14 +125,13 @@ class RefIntegrityIssueDetector(Detector):
                 check_params['conditions'])
 
             for row in result:
-                print(
-                    "Potential referential integrity issue found: " +
-                    check_name)
+                output = {'check_name': check_name, 'report_columns': {}}
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    print("  " + str(report_column) +
-                          " : " + str(row[column_num]))
+                    output['report_columns'][str(report_column)] = str(
+                        row[column_num])
                     column_num = column_num + 1
+                self.output_item(output)
                 issue_found = True
 
         return issue_found

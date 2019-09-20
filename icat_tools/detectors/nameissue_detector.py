@@ -5,6 +5,9 @@ import psycopg2
 
 class NameIssueDetector(Detector):
 
+    def get_name(self):
+        return "names"
+
     def _get_name_check_data(self):
         data = {
             'collection': {
@@ -29,14 +32,14 @@ class NameIssueDetector(Detector):
                 'name': 'zone_name'}}
         return data.items()
 
-    def _check_name_empty(self,table, name, report_columns):
+    def _check_name_empty(self, table, name, report_columns):
         query = "SELECT {} FROM {} WHERE {} = ''".format(
             ",".join(report_columns), table, name)
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
 
-    def _check_name_buggy_characters(self,table, name, report_columns):
+    def _check_name_buggy_characters(self, table, name, report_columns):
         query = r"SELECT {} FROM {} WHERE {} ~ '[\`\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]'".format(
             ",".join(report_columns), table, name)
         cursor = self.connection.cursor()
@@ -47,21 +50,20 @@ class NameIssueDetector(Detector):
         issue_found = False
         for check_name, check_params in self._get_name_check_data():
             if self.args.v:
-                print("Check: names - " + check_name)
+                self.output_message("Check: names - " + check_name)
 
             result_empty = self._check_name_empty(
                 check_params['table'],
                 check_params['name'],
                 check_params['report_columns'])
             for row in result_empty:
-                print("Empty name for " + check_name)
+                output = {'type': 'empty_name', 'check_name' : check_name, 'report_columns': {}}
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    print(
-                        "  {} : {}".format(
-                            str(report_column), str(
-                                row[column_num])))
+                    output['report_columns'][str(report_column)] = str(
+                        row[column_num])
                     column_num = column_num + 1
+                self.output_item(output)
                 issue_found = True
 
             result_buggy_characters = self._check_name_buggy_characters(
@@ -69,23 +71,19 @@ class NameIssueDetector(Detector):
                 check_params['name'],
                 check_params['report_columns'])
             for row in result_buggy_characters:
-                print(
-                    "Name with characters that iRODS processes incorrectly - " +
-                    check_name)
+                output = {'type': 'buggy_characters', 'check_name' : check_name, 'report_columns': {}}
                 column_num = 0
                 for report_column in check_params['report_columns']:
                     if str(report_column) == 'coll_id':
                         coll_name = utils.get_collection_name(
                             self.connection, str(row[column_num]))
                         if coll_name is not None:
-                            print("  Collection name : " + coll_name)
+                            output['report_columns']['Collection name'] = coll_name
                     else:
-                        print(
-                            "  {} : {}".format(
-                                str(report_column), str(
-                                    row[column_num])))
+                        output['report_columns'][str(report_column)] = str(
+                            row[column_num])
                     column_num = column_num + 1
-
-            issue_found = True
+                self.output_item(output)
+                issue_found = True
 
         return issue_found

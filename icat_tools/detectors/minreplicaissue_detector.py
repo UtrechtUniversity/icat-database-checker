@@ -4,6 +4,9 @@ import psycopg2
 
 
 class MinreplicaIssueDetector(Detector):
+    def get_name(self):
+        return 'minreplicas'
+
     def run(self):
         issue_found = False
         resource_name_lookup = utils.get_resource_name_dict(self.connection)
@@ -25,7 +28,9 @@ class MinreplicaIssueDetector(Detector):
                 issue_found = True
                 object_name = utils.get_dataobject_name(
                     self.connection, data_id)
-                print("Number of replicas for data object {} is {} (less than {})".format(
-                    object_name, number_replicas, self.args.min_replicas))
+                self.output_item({
+                    'object_name': object_name,
+                    'number_replicas': number_replicas,
+                    'min_replicas': self.args.min_replicas})
 
         return issue_found

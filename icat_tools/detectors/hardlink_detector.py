@@ -4,6 +4,9 @@ import psycopg2
 
 
 class HardlinkDetector(Detector):
+    def get_name(self):
+        return "hardlinks"
+
     def run(self):
         issue_found = False
         resource_name_lookup = utils.get_resource_name_dict(self.connection)
@@ -25,13 +28,18 @@ class HardlinkDetector(Detector):
                     other_object = utils.get_dataobject_name(
                         self.connection, lookup_path[row[1]])
                     if this_object == other_object:
-                        print(
-                            "Duplicate dataobject entry found for data object {}\n  Resource: {}\n   Path: {}".format(
-                                this_object, resource_name_lookup[resc_id], row[1]))
+                        self.output_item(
+                            {'type': 'duplicate_dataobject_entry',
+                             'object_name': this_object,
+                             'resource_name': resource_name_lookup[resc_id],
+                             'phy_path': row[1]})
                     else:
-                        print(
-                            "Hard link found for path {} on resource {}:\n  Data object 1: {}\n  Data object 2: {}\n".format(
-                                row[1], resource_name_lookup[resc_id], this_object, other_object))
+                        self.output_item(
+                            {'type': 'hardlink',
+                             'phy_path': row[1],
+                             'resource': resource_name_lookup[resc_id],
+                             'object1': this_object,
+                             'object2': other_object})
                 else:
                     lookup_path[row[1]] = row[0]
 
