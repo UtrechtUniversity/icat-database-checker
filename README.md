@@ -24,15 +24,15 @@ The script can be installed virtual environment, typically in the irods account 
 
 If the system doesn't have the virtualenv module yet, install it first: _sudo python3 -m pip install virtualenv_
 
-Now create a virtual environment for the script and install it:
+Now create a virtual environment and install the tool:
 - _python3 -m virtualenv venv_
 - _source venv/bin/activate_
-- _python3 -m pip install -r requirements.txt_
+- _pip3 install ./icat-database-checker_
 
 # Usage
 
 ```
-usage: icat-database-checker.py [-h] [--config-file CONFIG_FILE] [-v]
+usage: icat-database-checker    [-h] [--config-file CONFIG_FILE] [-v]
                                 [--run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}]
                                 [--min-replicas MIN_REPLICAS]
 

@@ -1,0 +1,73 @@
+from argparse import ArgumentParser
+from enum import Enum
+from icat_tools import utils
+from icat_tools.detectors.hardlink_detector import HardlinkDetector
+from icat_tools.detectors.minreplicaissue_detector import MinreplicaIssueDetector
+from icat_tools.detectors.nameissue_detector import NameIssueDetector
+from icat_tools.detectors.pathinconsistency_detector import PathInconsistencyDetector
+from icat_tools.detectors.refintegrityissue_detector import RefIntegrityIssueDetector
+from icat_tools.detectors.timestampissue_detector import TimestampIssueDetector
+import sys
+
+class TestSubset(Enum):
+    ref_integrity = 'ref_integrity'
+    timestamps = 'timestamps'
+    names = 'names'
+    hardlinks = 'hardlinks'
+    minreplicas = 'minreplicas'
+    path_consistency = 'path_consistency'
+    all = 'all'
+
+    def __str__(self):
+        return self.name
+
+def get_arguments():
+    desc = 'Performs a number of sanity checks on the iRODS ICAT database'
+    parser = ArgumentParser(description=desc)
+    parser.add_argument(
+        '--config-file',
+        help='Location of the irods server_config file (default: etc/irods/server_config.json )',
+        default='/etc/irods/server_config.json')
+    parser.add_argument(
+        '-v',
+        action='store_const',
+        const=True,
+        help='Verbose mode')
+    parser.add_argument(
+        '--run-test',
+        help='Test to run (default: all)',
+        default='all',
+        type=TestSubset,
+        choices=list(TestSubset))
+    parser.add_argument(
+        '--min-replicas',
+        help='Minimum number of replicas that a dataobject must have (default: 1).',
+        default=1,
+        type=int)
+    args = parser.parse_args()
+    return args
+
+def main():
+    args = get_arguments()
+    config = utils.read_database_config(args.config_file)
+    connection = utils.get_connection_database(config)
+
+    detectors = {
+            'path_consistency' : PathInconsistencyDetector(args,connection),
+            'hardlinks'        : HardlinkDetector(args,connection),
+            'minreplicas'      : MinreplicaIssueDetector(args,connection),
+            'ref_integrity'    : RefIntegrityIssueDetector(args,connection),
+            'timestamps'       : TimestampIssueDetector(args,connection),
+            'names'            : NameIssueDetector(args,connection) }
+
+    issue_found = False
+
+    for check in detectors:
+        if args.run_test.value == 'all' or args.run_test.value == check:
+            if detectors[check].run():
+                issue_found = True
+
+    if issue_found:
+       sys.exit(2)
+    else:
+       sys.exit(0)
