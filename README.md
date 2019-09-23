@@ -32,9 +32,10 @@ Now create a virtual environment and install the tool:
 # Usage
 
 ```
-usage: icat-database-checker    [-h] [--config-file CONFIG_FILE] [-v]
-                                [--run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}]
-                                [--min-replicas MIN_REPLICAS]
+usage: icat-database-checker [-h] [--config-file CONFIG_FILE] [-m {human,csv}]
+                             [-v]
+                             [--run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}]
+                             [--min-replicas MIN_REPLICAS]
 
 Performs a number of sanity checks on the iRODS ICAT database
 
@@ -43,6 +44,7 @@ optional arguments:
   --config-file CONFIG_FILE
                         Location of the irods server_config file (default:
                         etc/irods/server_config.json )
+  -m {human,csv}        Type of output
   -v                    Verbose mode
   --run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}
                         Test to run (default: all)

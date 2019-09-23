@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from enum import Enum
 from icat_tools import utils
-from icat_tools.dbcheck_outputprocessors import CheckOutputProcessorHuman
+from icat_tools.dbcheck_outputprocessors import CheckOutputProcessorCSV, CheckOutputProcessorHuman
 from icat_tools.detectors.hardlink_detector import HardlinkDetector
 from icat_tools.detectors.minreplicaissue_detector import MinreplicaIssueDetector
 from icat_tools.detectors.nameissue_detector import NameIssueDetector
@@ -23,6 +23,12 @@ class TestSubset(Enum):
     def __str__(self):
         return self.name
 
+class OutputMode(Enum):
+    human = 'human'
+    csv = 'csv'
+
+    def __str__(self):
+        return self.name
 
 def get_arguments():
     desc = 'Performs a number of sanity checks on the iRODS ICAT database'
@@ -31,6 +37,12 @@ def get_arguments():
         '--config-file',
         help='Location of the irods server_config file (default: etc/irods/server_config.json )',
         default='/etc/irods/server_config.json')
+    parser.add_argument(
+        '-m',
+        type=OutputMode,
+        help='Type of output',
+        default='human',
+        choices=list(OutputMode))
     parser.add_argument(
         '-v',
         action='store_const',
@@ -56,7 +68,13 @@ def main():
     config = utils.read_database_config(args.config_file)
     connection = utils.get_connection_database(config)
 
-    output_processor = CheckOutputProcessorHuman()
+    if args.m.value == 'human':
+        output_processor = CheckOutputProcessorHuman()
+    elif args.m.value == 'csv':
+        output_processor = CheckOutputProcessorCSV()
+    else:
+        print("Error: unknown output processor selected.")
+        sys.exit(1)
 
     detectors = [
         PathInconsistencyDetector(args, connection, output_processor),
