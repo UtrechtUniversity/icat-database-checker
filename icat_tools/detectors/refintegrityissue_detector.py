@@ -117,7 +117,7 @@ class RefIntegrityIssueDetector(Detector):
         issue_found = False
         for check_name, check_params in self._get_ref_integrity_data():
             if self.args.v:
-                self.output_message("Check: referential integrity - " + check_name)
+                self.output_message("Running referential integrity check for: " + check_name)
 
             result = self._check_ref_integrity(
                 check_params['table'],

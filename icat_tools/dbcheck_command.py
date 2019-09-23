@@ -70,10 +70,16 @@ def main():
 
     for detector in detectors:
         if args.run_test.value == 'all' or args.run_test.value == detector.get_name():
+            if args.v:
+                output_processor.output_message("Starting test {}".format(detector.get_name()))
             if detector.run():
                 issue_found = True
 
     if issue_found:
+        if args.v:
+            output_processor.output_message("Script finished. At least one issue has been detected.")
         sys.exit(2)
     else:
+        if args.v:
+            output_processor.output_message("Script finished. No issues detected.")
         sys.exit(0)
