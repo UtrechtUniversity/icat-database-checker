@@ -95,10 +95,15 @@ class CheckOutputProcessorHuman(OutputProcessor):
             print("Error: unknown output check type: {}".format(check))
             sys.exit(1)
 
+
 class CheckOutputProcessorCSV(OutputProcessor):
 
     def __init__(self):
-        self.writer= csv.writer(sys.stdout, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        self.writer = csv.writer(
+            sys.stdout,
+            delimiter=',',
+            quotechar='"',
+            quoting=csv.QUOTE_MINIMAL)
 
     def _column_value_to_list(self, dict):
         result = []
@@ -107,49 +112,75 @@ class CheckOutputProcessorCSV(OutputProcessor):
             result.append(value)
         return result
 
-
     def output_item(self, check, values):
 
         if check == 'hardlinks':
             if values['type'] == 'duplicate_dataobject_entry':
-                self.writer.writerow([check, 'duplicate_dataobject', values['phy_path'], values['resource_name'], values['object_name'] ])
+                self.writer.writerow([check,
+                                      'duplicate_dataobject',
+                                      values['phy_path'],
+                                      values['resource_name'],
+                                      values['object_name']])
             elif values['type'] == 'hardlink':
-                self.writer.writerow([check, 'hardlink', values['phy_path'], values['resource_name'], values['object1'], values['object2']])
+                self.writer.writerow([check,
+                                      'hardlink',
+                                      values['phy_path'],
+                                      values['resource_name'],
+                                      values['object1'],
+                                      values['object2']])
             else:
-                print( "Error: unknown output item type for hardlink check: {}".format(
+                print(
+                    "Error: unknown output item type for hardlink check: {}".format(
                         values['type']))
                 sys.exit(1)
 
         elif check == 'minreplicas':
-            self.writer.writerow([check, values['object_name'], values['number_replicas'], values['min_replicas'] ] )
-
+            self.writer.writerow([check,
+                                  values['object_name'],
+                                  values['number_replicas'],
+                                  values['min_replicas']])
 
         elif check == 'names':
             if values['type'] == 'empty_name' or values['type'] == 'buggy_characters':
-                self.writer.writerow([check, values['type'], values['check_name']] + self._column_value_to_list(values['report_columns']))
+                self.writer.writerow(
+                    [
+                        check,
+                        values['type'],
+                        values['check_name']] +
+                    self._column_value_to_list(
+                        values['report_columns']))
             else:
                 print(
                     "Error: unknown output item type for names check: {}".format(
                         values['type']))
                 sys.exit(1)
 
-
         elif check == 'path_consistency':
-            self.writer.writerow([check, values['resource_name'], values['phy_path'], values['coll_name'], values['dir_name']])
+            self.writer.writerow([check,
+                                  values['resource_name'],
+                                  values['phy_path'],
+                                  values['coll_name'],
+                                  values['dir_name']])
 
         elif check == 'ref_integrity':
-            self.writer.writerow([check, values['check_name']] + self._column_value_to_list(values['report_columns']))
+            self.writer.writerow([check, values['check_name']] +
+                                 self._column_value_to_list(values['report_columns']))
 
         elif check == 'timestamps':
-             if values['type'] == 'order' or values['type'] == 'future':
-                 self.writer.writerow([check, values['type'], values['check_name']] + self._column_value_to_list(values['report_columns']))
-             else:
-                 print(
+            if values['type'] == 'order' or values['type'] == 'future':
+                self.writer.writerow(
+                    [
+                        check,
+                        values['type'],
+                        values['check_name']] +
+                    self._column_value_to_list(
+                        values['report_columns']))
+            else:
+                print(
                     "Error: unknown output item type for timetamps check: {}".format(
                         values['type']))
-                 sys.exit(1)
+                sys.exit(1)
 
         else:
             print("Error: unknown output check type: {}".format(check))
             sys.exit(1)
-
