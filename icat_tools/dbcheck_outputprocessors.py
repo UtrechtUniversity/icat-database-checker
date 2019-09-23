@@ -11,6 +11,17 @@ class OutputProcessor:
         pass
 
 
+class OutputItemCollector(OutputProcessor):
+    def __init__(self):
+        self.items = []
+
+    def output_item(self, check, values):
+        self.items.append(values)
+
+    def get_items(self):
+        return self.items
+
+
 class CheckOutputProcessorHuman(OutputProcessor):
     def _print_report_column_table(self, dict):
         for column, value in dict.items():

@@ -29,9 +29,11 @@ class PathInconsistencyDetector(Detector):
             if collname_without_zone != dirname_without_vault:
                 self.output_item({
                     'resource_name': resource_name_lookup[row[2]],
+                    'resource_id' : row[2],
                     'phy_path': row[3],
                     'coll_name': collname_without_zone,
-                    'dir_name': dirname_without_vault})
+                    'dir_name': dirname_without_vault,
+                    'data_id': row[0]})
                 issue_found = True
 
         return issue_found

@@ -60,3 +60,10 @@ _./icat-database-checker --config-file my-server-config.json_ .
 
 By default, the script only displays (potential) issues.  Use the -v (verbose mode) switch to print additional
 information about which checks are performed.
+
+# Experimental scripts for fixing issues
+
+
+* gen\_cmd\_fix\_inconsistent\_paths: generates commands for trimming and re-replicating data objects that
+  a copy with an inconsistent path on consumer resource. It assumes that all data objects have an undamaged copy on
+  the provider(!).

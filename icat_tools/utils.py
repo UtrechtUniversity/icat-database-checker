@@ -71,6 +71,16 @@ def get_resource_name_dict(connection):
         result[row[0]] = row[1]
     return result
 
+def get_resource_host_dict(connection):
+    '''Returns a dictionary with resource ids (keys) and server names (values) of unixfilesystem resources. '''
+    query = "SELECT resc_id, resc_net from r_resc_main where resc_type_name = 'unixfilesystem'"
+    result = {}
+    cursor = connection.cursor()
+    cursor.execute(query)
+    for row in cursor.fetchall():
+        result[row[0]] = row[1]
+    return result
+
 
 def get_coll_path_dict(connection):
     '''Returns a dictionary with collection ids (keys) and collection names (values) of all collections. '''

@@ -11,7 +11,8 @@ setup(
    packages=['icat_tools','icat_tools.detectors'],
    entry_points={
        'console_scripts': [
-           'icat-database-checker = icat_tools.dbcheck_command:main'
+           'icat-database-checker = icat_tools.dbcheck_command:main',
+           'gen_cmd_fix_inconsistent_paths = icat_tools.gen_cmd_fix_inconsistent_paths:main'
        ]
    },
    version='0.0.1',

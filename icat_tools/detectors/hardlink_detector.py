@@ -32,14 +32,16 @@ class HardlinkDetector(Detector):
                             {'type': 'duplicate_dataobject_entry',
                              'object_name': this_object,
                              'resource_name': resource_name_lookup[resc_id],
-                             'phy_path': row[1]})
+                             'phy_path': row[1],
+                             'data_id': row[0] })
                     else:
                         self.output_item(
                             {'type': 'hardlink',
                              'phy_path': row[1],
                              'resource': resource_name_lookup[resc_id],
                              'object1': this_object,
-                             'object2': other_object})
+                             'object2': other_object,
+                             'data_id': row[0] })
                 else:
                     lookup_path[row[1]] = row[0]
 
