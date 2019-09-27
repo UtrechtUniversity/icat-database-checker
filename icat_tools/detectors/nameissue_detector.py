@@ -32,16 +32,21 @@ class NameIssueDetector(Detector):
                 'name': 'zone_name'}}
         return data.items()
 
+    def _get_prefix_condition(self,table):
+        if table == 'r_data_main' and self.args.data_object_prefix is not None:
+            return "AND concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(self.args.data_object_prefix)
+        else:
+            return ""
+
     def _check_name_empty(self, table, name, report_columns):
-        query = "SELECT {} FROM {} WHERE {} = ''".format(
-            ",".join(report_columns), table, name)
+        query = "SELECT {} FROM {} WHERE {} = '' {}".format(
+            ",".join(report_columns), table, name, self._get_prefix_condition(table))
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
 
     def _check_name_buggy_characters(self, table, name, report_columns):
-        query = r"SELECT {} FROM {} WHERE {} ~ '[\`\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]'".format(
-            ",".join(report_columns), table, name)
+        query = r"SELECT {} FROM {} WHERE {} ~ '[\`\x01\x02\x03\x04\x05\x06\x07\x08\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f]' {}".format( ",".join(report_columns), table, name, self._get_prefix_condition(table))
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()

@@ -59,6 +59,10 @@ def get_arguments():
         help='Minimum number of replicas that a dataobject must have (default: 1).',
         default=1,
         type=int)
+    parser.add_argument(
+        '--data-object-prefix',
+        help='Only check data objects with a particular prefix. The referential integrity and hard links tests do not support this option yet, and will ignore it. ',
+        default=None)
     args = parser.parse_args()
     return args
 

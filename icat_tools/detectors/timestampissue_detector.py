@@ -33,18 +33,24 @@ class TimestampIssueDetector(Detector):
         }
         return data.items()
 
+    def _get_prefix_condition(self, table):
+        if table == 'r_data_main' and self.args.data_object_prefix is not None:
+            return "AND concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(self.args.data_object_prefix)
+        else:
+            return ""
+
     def _check_timestamp_order(self, table, report_columns,
                                first_ts='create_ts', second_ts='modify_ts'):
-        query = "SELECT {} FROM {} WHERE CAST ( {} AS INT ) > CAST ( {} AS INT )".format(
-            ",".join(report_columns), table, first_ts, second_ts)
+        query = "SELECT {} FROM {} WHERE CAST ( {} AS INT ) > CAST ( {} AS INT ) {}".format(
+            ",".join(report_columns), table, first_ts, second_ts, self._get_prefix_condition(table))
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
 
     def _check_timestamp_future(self, table, report_columns, max_ts,
                                 first_ts='create_ts', second_ts='modify_ts'):
-        query = "SELECT {} FROM {} WHERE CAST( {} AS INT) > {} OR CAST( {} AS INT) > {}".format(
-            ",".join(report_columns), table, first_ts, max_ts, second_ts, max_ts)
+        query = "SELECT {} FROM {} WHERE CAST( {} AS INT) > {} OR CAST( {} AS INT) > {} {}".format(
+            ",".join(report_columns), table, first_ts, max_ts, second_ts, max_ts, self._get_prefix_condition(table))
         cursor = self.connection.cursor()
         cursor.execute(query)
         return cursor.fetchall()
