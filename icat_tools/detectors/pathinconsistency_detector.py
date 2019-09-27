@@ -15,7 +15,13 @@ class PathInconsistencyDetector(Detector):
         resource_name_lookup = utils.get_resource_name_dict(self.connection)
         coll_path_lookup = utils.get_coll_path_dict(self.connection)
 
-        query = "SELECT data_id, coll_id, resc_id, data_path FROM r_data_main"
+        if self.args.data_object_prefix is None:
+            query_condition = ""
+        else:
+            query_condition = "WHERE concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(
+                        self.args.data_object_prefix)
+
+        query = "SELECT data_id, coll_id, resc_id, data_path FROM r_data_main {}".format(query_condition)
         cursor = self.connection.cursor()
         cursor.execute(query)
 

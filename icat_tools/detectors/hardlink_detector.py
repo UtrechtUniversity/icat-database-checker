@@ -11,11 +11,16 @@ class HardlinkDetector(Detector):
         issue_found = False
         resource_name_lookup = utils.get_resource_name_dict(self.connection)
 
+        if self.args.data_object_prefix:
+            self.output_message("The hard links test does not support the --data-object-prefix option.")
+            self.output_message("Ignoring the --data-object-prefix option for this test.")
+
+
         for resc_id, resc_path in utils.get_resource_vault_path_dict(
                 self.connection).items():
 
-            query = "SELECT data_id, data_path FROM r_data_main WHERE resc_id = {}".format(
-                resc_id)
+            query = "SELECT data_id, data_path FROM r_data_main WHERE resc_id = {}".format(resc_id)
+
             lookup_path = {}
             cursor = self.connection.cursor()
             cursor.execute(query)

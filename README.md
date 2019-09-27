@@ -51,6 +51,10 @@ optional arguments:
   --min-replicas MIN_REPLICAS
                         Minimum number of replicas that a dataobject must have
                         (default: 1).
+  --data-object-prefix DATA_OBJECT_PREFIX
+                        Only check data objects with a particular prefix. The
+                        referential integrity and hard links tests do not
+                        support this option yet, and will ignore it.
 
 ```
 
