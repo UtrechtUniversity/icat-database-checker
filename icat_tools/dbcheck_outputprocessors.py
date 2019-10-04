@@ -64,11 +64,10 @@ class CheckOutputProcessorHuman(OutputProcessor):
 
         elif check == 'path_consistency':
             print(
-                "Inconsistent directory name in resource {} for {} :\n  collection name : {}\n  directory name in vault : {}".format(
+                    "Inconsistent directory name in resource {} for {} :\n  Data object: {}".format(
                     values['resource_name'],
                     values['phy_path'],
-                    values['coll_name'],
-                    values['dir_name']))
+                    values['data_name']))
 
         elif check == 'ref_integrity':
             print(
@@ -135,7 +134,7 @@ class CheckOutputProcessorCSV(OutputProcessor):
 
 
         elif check == 'path_consistency':
-            self.writer.writerow([check, values['resource_name'], values['phy_path'], values['coll_name'], values['dir_name']])
+            self.writer.writerow([check, values['resource_name'], values['phy_path'], values['data_name']])
 
         elif check == 'ref_integrity':
             self.writer.writerow([check, values['check_name']] + self._column_value_to_list(values['report_columns']))
