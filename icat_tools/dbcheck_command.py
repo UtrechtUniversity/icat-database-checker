@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType
 from enum import Enum
 from icat_tools import utils
 from icat_tools.dbcheck_outputprocessors import CheckOutputProcessorCSV, CheckOutputProcessorHuman
@@ -49,6 +49,11 @@ def get_arguments():
         const=True,
         help='Verbose mode')
     parser.add_argument(
+        '-o','--output',
+        type=FileType('w'),
+        default=sys.stdout,
+        help='Output file (default: standard output)')
+    parser.add_argument(
         '--run-test',
         help='Test to run (default: all)',
         default='all',
@@ -73,9 +78,9 @@ def main():
     connection = utils.get_connection_database(config)
 
     if args.m.value == 'human':
-        output_processor = CheckOutputProcessorHuman()
+        output_processor = CheckOutputProcessorHuman(args.output)
     elif args.m.value == 'csv':
-        output_processor = CheckOutputProcessorCSV()
+        output_processor = CheckOutputProcessorCSV(args.output)
     else:
         print("Error: unknown output processor selected.")
         sys.exit(1)
