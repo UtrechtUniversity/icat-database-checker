@@ -117,11 +117,11 @@ class RefIntegrityIssueDetector(Detector):
         issue_found = False
 
         if self.args.data_object_prefix:
-            self.output_message("The referential integrity checks do not yet support the --data-object-prefix option.")
-            self.output_message("Ignoring this option for these tests.")
+            self.print_error("The referential integrity checks do not yet support the --data-object-prefix option.")
+            self.print_error("Ignoring this option for these tests.")
         for check_name, check_params in self._get_ref_integrity_data():
             if self.args.v:
-                self.output_message("Running referential integrity check for: " + check_name)
+                self.print_progress("Running referential integrity check for: " + check_name)
 
             result = self._check_ref_integrity(
                 check_params['table'],

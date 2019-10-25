@@ -12,8 +12,8 @@ class HardlinkDetector(Detector):
         resource_name_lookup = utils.get_resource_name_dict(self.connection)
 
         if self.args.data_object_prefix:
-            self.output_message("The hard links test does not support the --data-object-prefix option.")
-            self.output_message("Ignoring the --data-object-prefix option for this test.")
+            self.print_error("The hard links test does not support the --data-object-prefix option.")
+            self.print_error("Ignoring the --data-object-prefix option for this test.")
 
 
         for resc_id, resc_path in utils.get_resource_vault_path_dict(

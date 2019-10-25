@@ -33,7 +33,7 @@ class MissingIndexDetector(Detector):
         issue_found = False
 
         if not os.path.isfile(self._get_expected_index_filename()):
-            self.output_message(
+            self.print_error(
                 "Index SQL file not found. Skipping missing index test.")
             return False
 

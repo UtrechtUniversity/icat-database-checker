@@ -55,7 +55,7 @@ class NameIssueDetector(Detector):
         issue_found = False
         for check_name, check_params in self._get_name_check_data():
             if self.args.v:
-                self.output_message("Running empty name test for: " + check_name)
+                self.print_progress("Running empty name test for: " + check_name)
 
             result_empty = self._check_name_empty(
                 check_params['table'],
@@ -73,7 +73,7 @@ class NameIssueDetector(Detector):
             result_empty.close()
 
             if self.args.v:
-                self.output_message("Running problematic character name test for: " + check_name)
+                self.print_progress("Running problematic character name test for: " + check_name)
 
             result_buggy_characters = self._check_name_buggy_characters(
                 check_params['table'],

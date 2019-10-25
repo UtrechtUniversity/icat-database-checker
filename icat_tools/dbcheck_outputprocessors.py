@@ -13,6 +13,16 @@ class OutputProcessor:
     def output_item(self, check, values):
         pass
 
+    def print_progress(self, message):
+        print(message, file=sys.stderr)
+
+    def print_error(self, message):
+        print(message, file=sys.stderr)
+
+    def exit_error(self, message):
+        self.print_error(message)
+        sys.exit(1)
+
 
 class CheckOutputProcessorHuman(OutputProcessor):
     def __init__(self, output):
@@ -45,10 +55,8 @@ class CheckOutputProcessorHuman(OutputProcessor):
                         values['object1'],
                         values['object2']))
             else:
-                self._prnln(
-                    "Error: unknown output item type for hardlink check: {}".format(
+                self.exit_error("Error: unknown output item type for hardlink check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         elif check == 'minreplicas':
             self._prnln("Number of replicas for data object {} is {} (less than {})".format(
@@ -66,10 +74,8 @@ class CheckOutputProcessorHuman(OutputProcessor):
                     values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             else:
-                self._prnln(
-                    "Error: unknown output item type for names check: {}".format(
+                self.exit_error("Error: unknown output item type for names check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         elif check == 'path_consistency':
             self._prnln(
@@ -95,23 +101,20 @@ class CheckOutputProcessorHuman(OutputProcessor):
                             values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             else:
-                self._prnln(
+                self.exit_error(
                     "Error: unknown output item type for timetamps check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         elif check == 'indexes':
             if values['type'] == 'missing_index':
                 self._prnln("Missing index: {}".format(values['index']))
             else:
-                self._prnln(
+                self.exit_error(
                     "Error: unknown output item type for index check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         else:
-            self._prnln("Error: unknown output check type: {}".format(check))
-            sys.exit(1)
+            self.exit_error("Error: unknown output check type: {}".format(check))
 
 
 class CheckOutputProcessorCSV(OutputProcessor):
@@ -138,9 +141,8 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 self.writer.writerow([check, 'hardlink', values['phy_path'],
                                       values['resource_name'], values['object1'], values['object2']])
             else:
-                print("Error: unknown output item type for hardlink check: {}".format(
+                self.exit_error("Error: unknown output item type for hardlink check: {}".format(
                     values['type']))
-                sys.exit(1)
 
         elif check == 'minreplicas':
             self.writer.writerow(
@@ -151,10 +153,9 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 self.writer.writerow([check, values['type'], values['check_name']] +
                                      self._column_value_to_list(values['report_columns']))
             else:
-                print(
+                self.exit_error(
                     "Error: unknown output item type for names check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         elif check == 'path_consistency':
             self.writer.writerow(
@@ -169,20 +170,17 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 self.writer.writerow([check, values['type'], values['check_name']] +
                                      self._column_value_to_list(values['report_columns']))
             else:
-                print(
+                self.exit_error(
                     "Error: unknown output item type for timetamps check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         elif check == 'indexes':
             if values['type'] == 'missing_index':
                 self.writer.writerow([check, values['type'], values['index']])
             else:
-                print(
+                self.exit_error(
                     "Error: unknown output item type for index check: {}".format(
                         values['type']))
-                sys.exit(1)
 
         else:
-            print("Error: unknown output check type: {}".format(check))
-            sys.exit(1)
+            self.exit_error("Error: unknown output check type: {}".format(check))

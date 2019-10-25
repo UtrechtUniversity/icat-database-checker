@@ -60,7 +60,7 @@ class TimestampIssueDetector(Detector):
         max_ts = int(time.time()) + 1
         for check_name, check_params in self._get_ts_check_data():
            if self.args.v:
-               self.output_message("Running timestamp order test for: " + check_name)
+               self.print_progress("Running timestamp order test for: " + check_name)
 
            result_order = self._check_timestamp_order(
                 check_params['table'],
@@ -76,7 +76,7 @@ class TimestampIssueDetector(Detector):
            result_order.close()
 
            if self.args.v:
-               self.output_message("Running future timestamp test for: " + check_name)
+               self.print_progress("Running future timestamp test for: " + check_name)
 
            result_future = self._check_timestamp_future(
                 check_params['table'],
