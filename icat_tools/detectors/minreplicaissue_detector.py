@@ -8,7 +8,6 @@ class MinreplicaIssueDetector(Detector):
 
     def run(self):
         issue_found = False
-        resource_name_lookup = utils.get_resource_name_dict(self.connection)
 
         if self.args.data_object_prefix is None:
             query_condition = ""
