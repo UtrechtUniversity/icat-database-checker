@@ -67,7 +67,7 @@ class CheckOutputProcessorHuman(OutputProcessor):
         elif check == 'names':
             if values['type'] == 'empty_name':
                 self._prnln("Empty name for " + values['check_name'])
-                _print_report_column_table(values['report_columns'])
+                self._print_report_column_table(values['report_columns'])
             elif values['type'] == 'buggy_characters':
                 self._prnln(
                     "Name with characters that iRODS processes incorrectly for " +
