@@ -1,6 +1,6 @@
 import json
 import psycopg2
-
+import sys
 
 def read_database_config(config_filename):
     with open(config_filename) as configfile:

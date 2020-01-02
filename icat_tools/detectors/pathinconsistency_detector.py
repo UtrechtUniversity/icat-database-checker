@@ -1,7 +1,6 @@
 from icat_tools import utils
 from icat_tools.detectors.detector import Detector
 import pathlib
-import psycopg2
 
 
 class PathInconsistencyDetector(Detector):

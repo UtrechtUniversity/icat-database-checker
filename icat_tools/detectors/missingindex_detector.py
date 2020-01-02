@@ -1,7 +1,5 @@
-from icat_tools import utils
 from icat_tools.detectors.detector import Detector
 import os
-import psycopg2
 import re
 
 

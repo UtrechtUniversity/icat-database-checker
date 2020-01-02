@@ -1,5 +1,4 @@
 from icat_tools.detectors.detector import Detector
-import psycopg2
 import time
 
 class TimestampIssueDetector(Detector):
