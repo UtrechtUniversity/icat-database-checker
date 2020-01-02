@@ -73,6 +73,11 @@ def get_arguments():
     args = parser.parse_args()
     return args
 
+def entry():
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Script interrupted by user.", file=sys.stderr)
 
 def main():
     args = get_arguments()
