@@ -18,7 +18,7 @@ The present version of the script is suitable for Postgresql databases. It is co
 
 # Requirements
 
-The script requires Python 3, and has been tested with Python 3.6.
+It is recommended to use Python 3.6 or higher. Older Python versions are not supported.
 
 # Installation
 
