@@ -53,7 +53,7 @@ def get_dataobject_name(connection, search_data_id):
 
 def get_resource_vault_path_dict(connection):
     ''' Returns a dictionary with resource ids (keys) and vault paths (values) of all unixfilesystem resources. '''
-    query = "SELECT resc_id, resc_def_path from r_resc_main where resc_type_name = 'unixfilesystem'"
+    query = "SELECT resc_id, resc_def_path from r_resc_main where resc_type_name = 'unixfilesystem' or resc_type_name = 'unix file system'"
     result = {}
     cursor = connection.cursor()
     cursor.execute(query)
