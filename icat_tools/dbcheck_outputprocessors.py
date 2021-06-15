@@ -102,7 +102,7 @@ class CheckOutputProcessorHuman(OutputProcessor):
                 self._print_report_column_table(values['report_columns'])
             else:
                 self.exit_error(
-                    "Error: unknown output item type for timetamps check: {}".format(
+                    "Error: unknown output item type for timestamps check: {}".format(
                         values['type']))
 
         elif check == 'indexes':
@@ -171,7 +171,7 @@ class CheckOutputProcessorCSV(OutputProcessor):
                                      self._column_value_to_list(values['report_columns']))
             else:
                 self.exit_error(
-                    "Error: unknown output item type for timetamps check: {}".format(
+                    "Error: unknown output item type for timestamps check: {}".format(
                         values['type']))
 
         elif check == 'indexes':
