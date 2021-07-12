@@ -27,7 +27,16 @@ class PathInconsistencyDetector(Detector):
         for row in cursor:
             vaultpath = pathlib.Path(resource_path_lookup[row[2]])
             dirname = pathlib.Path(*pathlib.Path(row[3]).parts[:-1])
-            dirname_without_vault = dirname.relative_to(vaultpath)
+            try:
+                dirname_without_vault = dirname.relative_to(vaultpath)
+            #If the dirname doesn't start with the vault path, there's either a path inconsistency or a file is on the wrong resource. Either way, this is an inconsistency so report it
+            except ValueError:
+                self.output_item({
+                    'resource_name': resource_name_lookup[row[2]],
+                    'phy_path': row[3],
+                    'data_name': "{}/{}".format(coll_path_lookup[row[1]],row[0])})
+                issue_found = True
+                continue
             collname = coll_path_lookup[row[1]]
             collname_parts = pathlib.Path(collname).parts
             collname_parts_without_zone = list(collname_parts[2:])
