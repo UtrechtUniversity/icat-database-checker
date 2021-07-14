@@ -20,6 +20,12 @@ The present version of the script is suitable for Postgresql databases. It is co
 
 It is recommended to use Python 3.6 or higher. Older Python versions are not supported.
 
+You'll also need tools to build the psycopg2 package. Example command for CentOS 7:
+
+```
+sudo yum -y install python3 python3-devel python-virtualenv gcc git postgresql-devel postgresql-libs
+```
+
 # Installation
 
 The script can be installed virtual environment, typically in the irods account on an iRODS server.
