@@ -4,7 +4,6 @@ This script checks the iRODS ICAT database for unexpected issues, specifically:
 - Referential integrity issues
 - Timestamp order issues (creation timestamp is later than modification timestamp)
 - Creation or modification timestamps that refer to the future
-- Empty object names
 - Object names that contain characters which are not handled correctly on XML-based clients,
   such as the python-irods-client (See https://github.com/irods/irods/issues/4132 for details).
 - Data objects with empty names
