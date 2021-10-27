@@ -73,6 +73,11 @@ class CheckOutputProcessorHuman(OutputProcessor):
                     "Name with characters that iRODS processes incorrectly for " +
                     values['check_name'])
                 self._print_report_column_table(values['report_columns'])
+            elif values['type'] == 'trailing_slash':
+                self._prnln(
+                    "Name with trailing slash for " +
+                    values['check_name'])
+                self._print_report_column_table(values['report_columns'])
             else:
                 self.exit_error("Error: unknown output item type for names check: {}".format(
                         values['type']))
@@ -149,7 +154,7 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 [check, values['object_name'], values['number_replicas'], values['min_replicas']])
 
         elif check == 'names':
-            if values['type'] == 'empty_name' or values['type'] == 'buggy_characters':
+            if values['type'] in ['empty_name','buggy_characters','trailing_slash']:
                 self.writer.writerow([check, values['type'], values['check_name']] +
                                      self._column_value_to_list(values['report_columns']))
             else:

@@ -7,6 +7,7 @@ This script checks the iRODS ICAT database for unexpected issues, specifically:
 - Object names that contain characters which are not handled correctly on XML-based clients,
   such as the python-irods-client (See https://github.com/irods/irods/issues/4132 for details).
 - Data objects with empty names
+- Collection and data object names with trailing slashes (See https://github.com/irods/irods/issues/3892)
 - Files in vaults that have a directory name which is inconsistent with the collection name
 - Hard links: multiple data objects refer to the same physical file
 - Duplicate replica: multiple replica entries for the same file

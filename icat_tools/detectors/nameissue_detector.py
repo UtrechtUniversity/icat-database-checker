@@ -50,38 +50,25 @@ class NameIssueDetector(Detector):
         cursor.execute(query)
         return cursor
 
+    def _check_name_trailing_slash(self, table, name, report_columns):
+        query = "SELECT {} FROM {} WHERE {} != '/' AND {} LIKE '%/' {}".format( ",".join(report_columns), table, name, name, self._get_prefix_condition(table))
+        cursor = self.connection.cursor("{}._check_name_trailing_slash".format(self.get_name()))
+        cursor.execute(query)
+        return cursor
+
     def run(self):
         issue_found = False
-        for check_name, check_params in self._get_name_check_data():
-            if self.args.v:
-                self.print_progress("Running empty name test for: " + check_name)
 
-            result_empty = self._check_name_empty(
-                check_params['table'],
-                check_params['name'],
-                check_params['report_columns'])
-            for row in result_empty:
-                output = {'type': 'empty_name', 'check_name' : check_name, 'report_columns': {}}
+        def _do_output(type_name, report_columns, query_result):
+            """Internal function for translating query results of a check to a generic
+               output dictionary and feeding it to the output processor. Also translates
+               collection IDs to collection names for readability."""
+            nonlocal issue_found
+
+            for row in query_result:
+                output = {'type': type_name, 'check_name' : check_name, 'report_columns': {}}
                 column_num = 0
-                for report_column in check_params['report_columns']:
-                    output['report_columns'][str(report_column)] = str(
-                        row[column_num])
-                    column_num = column_num + 1
-                self.output_item(output)
-                issue_found = True
-            result_empty.close()
-
-            if self.args.v:
-                self.print_progress("Running problematic character name test for: " + check_name)
-
-            result_buggy_characters = self._check_name_buggy_characters(
-                check_params['table'],
-                check_params['name'],
-                check_params['report_columns'])
-            for row in result_buggy_characters:
-                output = {'type': 'buggy_characters', 'check_name' : check_name, 'report_columns': {}}
-                column_num = 0
-                for report_column in check_params['report_columns']:
+                for report_column in report_columns:
                     if str(report_column) == 'coll_id':
                         coll_name = utils.get_collection_name(
                             self.connection, str(row[column_num]))
@@ -91,8 +78,41 @@ class NameIssueDetector(Detector):
                         output['report_columns'][str(report_column)] = str(
                             row[column_num])
                     column_num = column_num + 1
+
                 self.output_item(output)
                 issue_found = True
-            result_buggy_characters.close()
+
+            query_result.close()
+            return issue_found
+
+        for check_name, check_params in self._get_name_check_data():
+            if self.args.v:
+                self.print_progress("Running empty name test for: " + check_name)
+
+            result_empty = self._check_name_empty(
+                check_params['table'],
+                check_params['name'],
+                check_params['report_columns'])
+            _do_output("empty_name", check_params['report_columns'], result_empty)
+
+
+            if check_name in ["data object", "collection"]:
+                if self.args.v:
+                    self.print_progress("Running trailing slash test for: " + check_name)
+
+                result_trailing_slash = self._check_name_trailing_slash(
+                    check_params['table'],
+                    check_params['name'],
+                    check_params['report_columns'])
+                _do_output("trailing_slash", check_params['report_columns'], result_trailing_slash)
+
+            if self.args.v:
+                self.print_progress("Running problematic character name test for: " + check_name)
+
+            result_buggy_characters = self._check_name_buggy_characters(
+                check_params['table'],
+                check_params['name'],
+                check_params['report_columns'])
+            _do_output("buggy_characters", check_params['report_columns'], result_buggy_characters)
 
         return issue_found
