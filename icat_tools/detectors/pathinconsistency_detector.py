@@ -15,12 +15,13 @@ class PathInconsistencyDetector(Detector):
         coll_path_lookup = utils.get_coll_path_dict(self.connection)
 
         if self.args.data_object_prefix is None:
-            query_condition = ""
+            query_condition = "WHERE r_resc_main.resc_type_name in ('unixfilesystem', 'unix file system')"
         else:
-            query_condition = "WHERE concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(
-                        self.args.data_object_prefix)
+            query_condition = "WHERE concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%' AND r_resc_main.resc_type_name in ('unixfilesystem', 'unix file system')".format( self.args.data_object_prefix)
 
-        query = "SELECT data_name, coll_id, resc_id, data_path FROM r_data_main {}".format(query_condition)
+        query = ( "SELECT r_data_main.data_name, r_data_main.coll_id, r_data_main.resc_id, r_data_main.data_path " +
+                  "FROM r_data_main INNER JOIN r_resc_main ON r_resc_main.resc_id = r_data_main.resc_id " +
+                  query_condition )
         cursor = self.connection.cursor(self.get_name())
         cursor.execute(query)
 
