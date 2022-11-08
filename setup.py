@@ -14,5 +14,5 @@ setup(
            'icat-database-checker = icat_tools.dbcheck_command:entry'
        ]
    },
-   version='0.0.1',
+   version='1.0.0',
 )
