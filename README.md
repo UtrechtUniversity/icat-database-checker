@@ -26,6 +26,12 @@ You'll also need tools to build the psycopg2 package. Example command for CentOS
 sudo yum -y install python3 python3-devel python-virtualenv gcc git postgresql-devel postgresql-libs
 ```
 
+Example command for Ubuntu 20.04 LTS:
+
+```
+sudo apt install -y python3.8 python3.8-venv python3.8-dev python3-wheel gcc libpq5
+```
+
 # Installation
 
 The script can be installed virtual environment, typically in the irods account on an iRODS server.
