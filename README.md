@@ -14,7 +14,7 @@ This script checks the iRODS ICAT database for unexpected issues, specifically:
 - Data objects with too few replicas (the default minimum is one replica)
 - Missing indexes
 
-The present version of the script is suitable for Postgresql databases. It is compatible with iRODS 4.2.x.
+The present version of the script is suitable for Postgresql databases. It is compatible with iRODS 4.2.x and 4.3.x.
 
 # Requirements
 
