@@ -18,7 +18,7 @@ The present version of the script is suitable for Postgresql databases. It is co
 
 # Requirements
 
-It is recommended to use Python 3.6 or higher. Older Python versions are not supported.
+It is recommended to use Python 3.8 or higher. Older Python versions are not supported.
 
 You'll also need tools to build the psycopg2 package. Example command for CentOS 7:
 
