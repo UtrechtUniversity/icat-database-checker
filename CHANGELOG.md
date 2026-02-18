@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   integrity checks, rather than running all of them. This can be useful
   on larger environments, where running all checks would be very time-consuming
   or even not feasible.
+* Add support for iRODS 5.0.x
 
 ## [1.0.0] - 2022-11-08
 

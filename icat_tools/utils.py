@@ -6,16 +6,22 @@ import sys
 def read_database_config(config_filename):
     with open(config_filename) as configfile:
         data = json.load(configfile)
-    return data['plugin_configuration']['database']['postgres']
+    if 'postgres' in data['plugin_configuration']['database']:
+        # This basically translates an iRODS 4.2.x/4.3.x format
+        # database configuration into iRODS 5.0 format
+        return {k.replace("db_", "", 1): v for (k, v) in
+                data['plugin_configuration']['database']['postgres'].items()}
+    else:
+        return data['plugin_configuration']['database']
 
 
 def get_connection_database(config):
     try:
-        connection = psycopg2.connect(user=config['db_username'],
-                                      password=config['db_password'],
-                                      host=config['db_host'],
-                                      port=config['db_port'],
-                                      database=config['db_name'])
+        connection = psycopg2.connect(user=config['username'],
+                                      password=config['password'],
+                                      host=config['host'],
+                                      port=config['port'],
+                                      database=config['name'])
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to database: ", error)
         sys.exit(1)
