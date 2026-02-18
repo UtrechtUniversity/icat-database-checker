@@ -64,6 +64,16 @@ def get_arguments():
         type=TestSubset,
         choices=list(TestSubset))
     parser.add_argument(
+        '--ref-integrity-check',
+        help='''Comma-separated list of specific referential integrity checks to run.
+                This option has no effect if referential integrity checks have been disabled
+                using the --run-test option. In order to get a list of supported
+                referential integrity checks, run the tool with the --run-test ref_integrity --ref-integrity-check '' -v
+                options. By default, the tool runs all referential integrity checks.''',
+        default='all',
+        required=False,
+        type=str)
+    parser.add_argument(
         '--min-replicas',
         help='Minimum number of replicas that a dataobject must have (default: 1).',
         default=1,

@@ -111,6 +111,10 @@ class RefIntegrityIssueDetector(Detector):
         cursor.execute(query)
         return cursor
 
+    def need_to_run_check(self, name: str) -> bool:
+        return (self.args.ref_integrity_check == "all"
+                or name in self.args.ref_integrity_check.split(","))
+
     def run(self):
         issue_found = False
 
@@ -119,9 +123,14 @@ class RefIntegrityIssueDetector(Detector):
                 "The referential integrity checks do not yet support the --data-object-prefix option.")
             self.print_error("Ignoring this option for these tests.")
         for check_name, check_params in self._get_ref_integrity_data():
+            need_to_run_check: bool = self.need_to_run_check(check_name)
             if self.args.v:
                 self.print_progress(
-                    "Running referential integrity check for: " + check_name)
+                    ("Running" if need_to_run_check else "Skipping")
+                    + " referential integrity check for: " + check_name)
+
+            if not need_to_run_check:
+                continue
 
             result = self._check_ref_integrity(
                 check_params['table'],

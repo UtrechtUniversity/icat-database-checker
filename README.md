@@ -46,10 +46,12 @@ Now create a virtual environment and install the tool:
 # Usage
 
 ```
-usage: icat-database-checker [-h] [--config-file CONFIG_FILE] [-m {human,csv}]
-                             [-v]
+usage: icat-database-checker [-h] [--config-file CONFIG_FILE] [-m {human,csv}] [-v]
+                             [-o OUTPUT]
                              [--run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,indexes,all}]
+                             [--ref-integrity-check REF_INTEGRITY_CHECK]
                              [--min-replicas MIN_REPLICAS]
+                             [--data-object-prefix DATA_OBJECT_PREFIX]
 
 Performs a number of sanity checks on the iRODS ICAT database
 
@@ -60,16 +62,23 @@ optional arguments:
                         etc/irods/server_config.json )
   -m {human,csv}        Type of output
   -v                    Verbose mode
-  --run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,all}
+  -o OUTPUT, --output OUTPUT
+                        Output file (default: standard output)
+  --run-test {ref_integrity,timestamps,names,hardlinks,minreplicas,path_consistency,indexes,all}
                         Test to run (default: all)
+  --ref-integrity-check REF_INTEGRITY_CHECK
+                        Comma-separated list of specific referential integrity checks to run.
+                        This option has no effect if referential integrity checks have been
+                        disabled using the --run-test option. In order to get a list of
+                        supported referential integrity checks, run the tool with the --run-
+                        test ref_integrity --ref-integrity-check '' -v options. By default,
+                        the tool runs all referential integrity checks.
   --min-replicas MIN_REPLICAS
-                        Minimum number of replicas that a dataobject must have
-                        (default: 1).
+                        Minimum number of replicas that a dataobject must have (default: 1).
   --data-object-prefix DATA_OBJECT_PREFIX
-                        Only check data objects with a particular prefix. The
-                        referential integrity and hard links tests do not
-                        support this option yet, and will ignore it.
-
+                        Only check data objects with a particular prefix. The referential
+                        integrity and hard links tests do not support this option yet, and
+                        will ignore it.
 ```
 
 By default, the script retrieves the database connection parameters from the iRODS server configuration file.
