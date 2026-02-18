@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## UNRELEASED
 
 * Minimum version is now Python 3.8+
+* Add --ref-integrity--check parameter to select specific referential
+  integrity checks, rather than running all of them. This can be useful
+  on larger environments, where running all checks would be very time-consuming
+  or even not feasible.
 
 ## [1.0.0] - 2022-11-08
 
