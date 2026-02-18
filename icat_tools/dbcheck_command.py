@@ -25,12 +25,14 @@ class TestSubset(Enum):
     def __str__(self):
         return self.name
 
+
 class OutputMode(Enum):
     human = 'human'
     csv = 'csv'
 
     def __str__(self):
         return self.name
+
 
 def get_arguments():
     desc = 'Performs a number of sanity checks on the iRODS ICAT database'
@@ -51,7 +53,7 @@ def get_arguments():
         const=True,
         help='Verbose mode')
     parser.add_argument(
-        '-o','--output',
+        '-o', '--output',
         type=FileType('w'),
         default=sys.stdout,
         help='Output file (default: standard output)')
@@ -73,11 +75,13 @@ def get_arguments():
     args = parser.parse_args()
     return args
 
+
 def entry():
     try:
         main()
     except KeyboardInterrupt:
         print("Script interrupted by user.", file=sys.stderr)
+
 
 def main():
     args = get_arguments()
@@ -106,15 +110,19 @@ def main():
     for detector in detectors:
         if args.run_test.value == 'all' or args.run_test.value == detector.get_name():
             if args.v:
-                output_processor.print_progress("Starting test {}".format(detector.get_name()))
+                output_processor.print_progress(
+                    "Starting test {}".format(
+                        detector.get_name()))
             if detector.run():
                 issue_found = True
 
     if issue_found:
         if args.v:
-            output_processor.print_progress("Script finished. At least one issue has been detected.")
+            output_processor.print_progress(
+                "Script finished. At least one issue has been detected.")
         sys.exit(2)
     else:
         if args.v:
-            output_processor.print_progress("Script finished. No issues detected.")
+            output_processor.print_progress(
+                "Script finished. No issues detected.")
         sys.exit(0)

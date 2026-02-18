@@ -2,6 +2,7 @@ import json
 import psycopg2
 import sys
 
+
 def read_database_config(config_filename):
     with open(config_filename) as configfile:
         data = json.load(configfile)
@@ -41,12 +42,13 @@ def get_dataobject_name(connection, search_data_id):
         str(search_data_id))
     cursor = connection.cursor()
     cursor.execute(query)
-    
+
     if cursor.rowcount >= 1:
         # It is possible that we get multiple matches for the dataobject id, because the table
         # has separate entries for replicas
         data_entry = cursor.fetchone()
-        return get_collection_name(connection, data_entry[1]) + "/" + data_entry[0]
+        return get_collection_name(
+            connection, data_entry[1]) + "/" + data_entry[0]
     else:
         return None
 

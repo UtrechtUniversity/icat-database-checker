@@ -1,6 +1,7 @@
 from icat_tools.detectors.detector import Detector
 import time
 
+
 class TimestampIssueDetector(Detector):
 
     def get_name(self):
@@ -34,7 +35,8 @@ class TimestampIssueDetector(Detector):
 
     def _get_prefix_condition(self, table):
         if table == 'r_data_main' and self.args.data_object_prefix is not None:
-            return "AND concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(self.args.data_object_prefix)
+            return "AND concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(
+                self.args.data_object_prefix)
         else:
             return ""
 
@@ -58,37 +60,47 @@ class TimestampIssueDetector(Detector):
         issue_found = False
         max_ts = int(time.time()) + 1
         for check_name, check_params in self._get_ts_check_data():
-           if self.args.v:
-               self.print_progress("Running timestamp order test for: " + check_name)
+            if self.args.v:
+                self.print_progress(
+                    "Running timestamp order test for: " + check_name)
 
-           result_order = self._check_timestamp_order(
+            result_order = self._check_timestamp_order(
                 check_params['table'],
                 check_params['report_columns'])
-           for row in result_order:
-                output = { 'type' : 'order', 'check_name' : check_name, 'report_columns' : {} }
+            for row in result_order:
+                output = {
+                    'type': 'order',
+                    'check_name': check_name,
+                    'report_columns': {}}
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    output['report_columns'][str(report_column)] = str(row[column_num])
+                    output['report_columns'][str(report_column)] = str(
+                        row[column_num])
                     column_num = column_num + 1
                 self.output_item(output)
                 issue_found = True
-           result_order.close()
+            result_order.close()
 
-           if self.args.v:
-               self.print_progress("Running future timestamp test for: " + check_name)
+            if self.args.v:
+                self.print_progress(
+                    "Running future timestamp test for: " + check_name)
 
-           result_future = self._check_timestamp_future(
+            result_future = self._check_timestamp_future(
                 check_params['table'],
                 check_params['report_columns'],
                 max_ts)
-           for row in result_future:
-                output = { 'type' : 'future', 'check_name' : check_name, 'report_columns' : {} }
+            for row in result_future:
+                output = {
+                    'type': 'future',
+                    'check_name': check_name,
+                    'report_columns': {}}
                 column_num = 0
                 for report_column in check_params['report_columns']:
-                    output['report_columns'][str(report_column)] = str(row[column_num])
+                    output['report_columns'][str(report_column)] = str(
+                        row[column_num])
                     column_num = column_num + 1
                 self.output_item(output)
                 issue_found = True
-           result_future.close()     
+            result_future.close()
 
         return issue_found

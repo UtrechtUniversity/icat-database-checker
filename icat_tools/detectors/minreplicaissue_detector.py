@@ -12,9 +12,11 @@ class MinreplicaIssueDetector(Detector):
         if self.args.data_object_prefix is None:
             query_condition = ""
         else:
-            query_condition = "WHERE concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(self.args.data_object_prefix)
+            query_condition = "WHERE concat ( ( select coll_name from r_coll_main where coll_id = r_data_main.coll_id ), '/', r_data_main.data_name) LIKE '{}%'".format(
+                self.args.data_object_prefix)
 
-        query = "SELECT data_id, resc_id FROM r_data_main {}".format(query_condition)
+        query = "SELECT data_id, resc_id FROM r_data_main {}".format(
+            query_condition)
         cursor = self.connection.cursor(self.get_name())
         cursor.execute(query)
         data_resc_lookup = {}

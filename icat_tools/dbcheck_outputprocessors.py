@@ -56,7 +56,7 @@ class CheckOutputProcessorHuman(OutputProcessor):
                         values['object2']))
             else:
                 self.exit_error("Error: unknown output item type for hardlink check: {}".format(
-                        values['type']))
+                    values['type']))
 
         elif check == 'minreplicas':
             self._prnln("Number of replicas for data object {} is {} (less than {})".format(
@@ -70,17 +70,17 @@ class CheckOutputProcessorHuman(OutputProcessor):
                 self._print_report_column_table(values['report_columns'])
             elif values['type'] == 'buggy_characters':
                 self._prnln(
-                    "Name with characters that iRODS processes incorrectly for " +
-                    values['check_name'])
+                    "Name with characters that iRODS processes incorrectly for "
+                    + values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             elif values['type'] == 'trailing_slash':
                 self._prnln(
-                    "Name with trailing slash for " +
-                    values['check_name'])
+                    "Name with trailing slash for "
+                    + values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             else:
                 self.exit_error("Error: unknown output item type for names check: {}".format(
-                        values['type']))
+                    values['type']))
 
         elif check == 'path_consistency':
             self._prnln(
@@ -98,12 +98,12 @@ class CheckOutputProcessorHuman(OutputProcessor):
         elif check == 'timestamps':
             if values['type'] == 'order':
                 self._prnln(
-                    "Timestamps in unexpected order for " +
-                    values['check_name'])
+                    "Timestamps in unexpected order for "
+                    + values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             elif values['type'] == 'future':
-                self._prnln("Timestamp from the future for " +
-                            values['check_name'])
+                self._prnln("Timestamp from the future for "
+                            + values['check_name'])
                 self._print_report_column_table(values['report_columns'])
             else:
                 self.exit_error(
@@ -119,7 +119,8 @@ class CheckOutputProcessorHuman(OutputProcessor):
                         values['type']))
 
         else:
-            self.exit_error("Error: unknown output check type: {}".format(check))
+            self.exit_error(
+                "Error: unknown output check type: {}".format(check))
 
 
 class CheckOutputProcessorCSV(OutputProcessor):
@@ -154,9 +155,10 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 [check, values['object_name'], values['number_replicas'], values['min_replicas']])
 
         elif check == 'names':
-            if values['type'] in ['empty_name','buggy_characters','trailing_slash']:
-                self.writer.writerow([check, values['type'], values['check_name']] +
-                                     self._column_value_to_list(values['report_columns']))
+            if values['type'] in ['empty_name',
+                                  'buggy_characters', 'trailing_slash']:
+                self.writer.writerow([check, values['type'], values['check_name']]
+                                     + self._column_value_to_list(values['report_columns']))
             else:
                 self.exit_error(
                     "Error: unknown output item type for names check: {}".format(
@@ -167,13 +169,13 @@ class CheckOutputProcessorCSV(OutputProcessor):
                 [check, values['resource_name'], values['phy_path'], values['data_name']])
 
         elif check == 'ref_integrity':
-            self.writer.writerow([check, values['check_name']] +
-                                 self._column_value_to_list(values['report_columns']))
+            self.writer.writerow([check, values['check_name']]
+                                 + self._column_value_to_list(values['report_columns']))
 
         elif check == 'timestamps':
             if values['type'] == 'order' or values['type'] == 'future':
-                self.writer.writerow([check, values['type'], values['check_name']] +
-                                     self._column_value_to_list(values['report_columns']))
+                self.writer.writerow([check, values['type'], values['check_name']]
+                                     + self._column_value_to_list(values['report_columns']))
             else:
                 self.exit_error(
                     "Error: unknown output item type for timestamps check: {}".format(
@@ -188,4 +190,5 @@ class CheckOutputProcessorCSV(OutputProcessor):
                         values['type']))
 
         else:
-            self.exit_error("Error: unknown output check type: {}".format(check))
+            self.exit_error(
+                "Error: unknown output check type: {}".format(check))
