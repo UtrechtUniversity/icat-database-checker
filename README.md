@@ -19,18 +19,14 @@ with iRODS 4.2.x, 4.3.x. and 5.0.x.
 
 # Requirements
 
-It is recommended to use Python 3.8 or higher. Older Python versions are not supported.
+It is recommended to use Python 3.9 or higher. Older Python versions are not supported.
 
-You'll also need tools to build the psycopg2 package. Example command for CentOS 7:
+You'll also need tools to build the psycopg2 package.
 
-```
-sudo yum -y install python3 python3-devel python-virtualenv gcc git postgresql-devel postgresql-libs
-```
-
-Example command for Ubuntu 20.04 LTS:
+Example command for Ubuntu 24.04 LTS:
 
 ```
-sudo apt install -y python3.8 python3.8-venv python3.8-dev python3-wheel gcc libpq5
+sudo apt install -y python3 python3-venv python3-dev python3-wheel gcc libpq5
 ```
 
 # Installation
