@@ -1,0 +1,30 @@
+[project]
+authors = [
+    { name = "Sietse Snel", email = "s.t.snel@uu.nl" }
+]
+description = "Toolkit to detect issues in iRODS ICAT-database"
+license = "MIT"
+dependencies = [
+    "psycopg2-binary>=2.7.7"
+]
+name = "icat_tools"
+version = "1.1.0"
+
+[project.scripts]
+icat-database-checker = "icat_tools.dbcheck_command:entry"
+
+[build-system]
+requires = ["setuptools >= 82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.flake8]
+ignore = [
+     "E221",
+     "E402",
+     "W503"
+]
+import-order-style = "smarkets"
+strictness = "short"
+docstring_style = "sphinx"
+max-line-length = 300
+exclude = ["venv"]
