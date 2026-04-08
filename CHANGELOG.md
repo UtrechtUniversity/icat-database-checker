@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## UNRELEASED
 
 * Convert package data from setup.{cfg,py} to pyproject.toml
+* Minimum Python version is now Python 3.9
 
 ## [1.1.0] - 2026-02-18
 
