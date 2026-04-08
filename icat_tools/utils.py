@@ -6,13 +6,24 @@ import sys
 def read_database_config(config_filename):
     with open(config_filename) as configfile:
         data = json.load(configfile)
-    if 'postgres' in data['plugin_configuration']['database']:
+    all_fields = ["username", "password", "host", "port", "name"]
+    irods4_config_available = all(
+        f"db_{field}" in
+        data['plugin_configuration']['database'].get('postgres', [])
+        for field in all_fields)
+    irods5_config_available = all(
+        field in
+        data['plugin_configuration']['database']
+        for field in all_fields)
+    if irods4_config_available:
         # This basically translates an iRODS 4.2.x/4.3.x format
         # database configuration into iRODS 5.0 format
         return {k.replace("db_", "", 1): v for (k, v) in
                 data['plugin_configuration']['database']['postgres'].items()}
-    else:
+    elif irods5_config_available:
         return data['plugin_configuration']['database']
+    else:
+        raise Exception("Cannot find complete database configuration in iRODS config file.")
 
 
 def get_connection_database(config):

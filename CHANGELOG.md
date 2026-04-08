@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## UNRELEASED
 
+* Make iRODS configuration version detection more robust, so that it doesn't
+  detect the wrong version if it sees an iRODS 5 configuration with a couple of leftover
+  iRODS 4 configuration parameters.
 * Convert package data from setup.{cfg,py} to pyproject.toml
 * Minimum Python version is now Python 3.9
 
